@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>재능개화원 才能開花院</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #050510; --bg2: #0d0d1e; --bg3: #0f0f1e; --bg4: #1a1a2e;
+    --border: #1e1e3e; --border2: #2a2a3e;
+    --purple: #c084fc; --pink: #f472b6; --orange: #fb923c;
+    --green: #4ade80; --yellow: #fbbf24; --blue: #60a5fa;
+    --teal: #34d399; --slate: #94a3b8;
+    --text: #e0e0f0; --muted: #6060a0; --dim: #3a3a5e;
+    --red: #f87171;
+    --serif: 'Noto Serif KR', serif;
+    --sans: 'Noto Sans KR', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  input, textarea, select { font-family: var(--sans); }
+  button { font-family: var(--sans); cursor: pointer; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .serif { font-family: var(--serif); }
+
+  /* BG decoration */
+  #bg-deco { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  #bg-deco::before { content:''; position:absolute; top:-20%; left:-10%; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(192,132,252,.07) 0%, transparent 70%); }
+  #bg-deco::after  { content:''; position:absolute; bottom:-20%; right:-10%; width:600px; height:600px; border-radius:50%; background:radial-gradient(circle, rgba(129,140,248,.07) 0%, transparent 70%); }
+  #root { position: relative; z-index: 1; }
+
+  /* TOAST */
+  #toast { position:fixed; top:20px; left:50%; transform:translateX(-50%) translateY(-60px); z-index:9999; border-radius:10px; padding:10px 24px; font-weight:700; font-size:14px; white-space:nowrap; transition: transform 0.3s; pointer-events:none; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.ok  { background:#1a2e1a; border:1px solid var(--green); color:var(--green); }
+  #toast.err { background:#2e1a1a; border:1px solid var(--red);   color:var(--red); }
+
+  /* MODAL */
+  #modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:999; align-items:center; justify-content:center; padding:20px; }
+  #modal-overlay.open { display:flex; }
+  #modal-box { background:var(--bg3); border:1px solid var(--border2); border-radius:20px; padding:28px; max-width:480px; width:100%; max-height:90vh; overflow-y:auto; }
+
+  /* NAV */
+  nav { position:sticky; top:0; z-index:100; background:rgba(5,5,16,.92); backdrop-filter:blur(12px); border-bottom:1px solid var(--bg4); padding:0 24px; }
+  .nav-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; gap:8px; height:56px; }
+  .nav-brand { font-family:var(--serif); font-weight:700; font-size:18px; color:var(--purple); background:none; border:none; margin-right:auto; }
+  .nav-btn { padding:6px 16px; border-radius:8px; font-size:13px; border:1px solid transparent; background:none; color:var(--muted); transition:all .2s; }
+  .nav-btn.active { background:var(--bg4); border-color:var(--border2); color:var(--purple); }
+  .nav-btn.admin-btn.active { border-color:rgba(192,132,252,.27); }
+  .nav-btn.logout { border-color:#2a1a1a; font-size:12px; }
+
+  /* FORM ELEMENTS */
+  .field { margin-bottom:12px; }
+  .field label { font-size:11px; color:var(--muted); display:block; margin-bottom:4px; }
+  .field input, .field textarea, .field select {
+    width:100%; background:var(--bg4); border:1px solid #2a2a4e; color:var(--text);
+    border-radius:8px; padding:10px 14px; font-size:14px;
+  }
+  .field textarea { resize:none; }
+  .field select { appearance:none; }
+
+  /* BUTTONS */
+  .btn { border:none; border-radius:10px; padding:10px 24px; font-weight:700; font-size:14px; color:#fff; transition:opacity .15s; }
+  .btn:hover { opacity:.85; }
+  .btn-sm { border-radius:6px; padding:6px 14px; font-size:12px; }
+  .btn-purple { background:var(--purple); }
+  .btn-yellow { background:var(--yellow); color:#000; }
+  .btn-dark   { background:var(--border2); }
+  .btn-red    { background:rgba(248,113,113,.27); color:var(--red); }
+  .btn-full   { width:100%; padding:12px 0; font-size:15px; }
+
+  /* CARD */
+  .card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; padding:20px; }
+  .card-hover { transition:transform .2s, box-shadow .2s; }
+  .card-hover:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(192,132,252,.13); }
+
+  /* TABS */
+  .tab-bar { display:flex; gap:8px; background:var(--bg2); border-radius:12px; padding:6px; width:fit-content; margin-bottom:28px; }
+  .tab-btn  { padding:8px 20px; border:none; border-radius:8px; font-weight:600; font-size:13px; background:transparent; color:var(--muted); transition:all .2s; }
+  .tab-btn.active { background:var(--purple); color:#fff; }
+
+  /* STAR */
+  .stars span { font-size:22px; cursor:pointer; color:#333; transition:color .1s; }
+  .stars span.lit { color:var(--yellow); }
+  .stars.readonly span { cursor:default; }
+
+  /* GRID */
+  .lecture-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+
+  /* HOME */
+  #page-home { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; }
+  .home-card { background:var(--bg3); border:1px solid var(--border); border-radius:20px; padding:32px; width:100%; max-width:380px; }
+  .auth-switcher { display:flex; background:var(--bg); border-radius:10px; padding:4px; margin-bottom:24px; }
+  .auth-tab { flex:1; padding:8px 0; border:none; border-radius:8px; font-weight:600; font-size:13px; background:transparent; color:var(--muted); transition:all .2s; }
+  .auth-tab.active { background:var(--purple); color:#fff; }
+
+  /* TALENT CARD */
+  .talent-card { background:var(--bg); border-radius:12px; padding:16px 20px; min-width:120px; text-align:center; }
+  .talent-dots { display:flex; gap:3px; justify-content:center; margin-top:8px; }
+  .talent-dot { width:8px; height:8px; border-radius:50%; background:var(--border2); }
+  .talent-dot.lit { }
+
+  /* BADGE */
+  .badge { font-size:11px; border-radius:6px; padding:2px 8px; }
+
+  /* GAME */
+  #timing-bar { position:relative; height:24px; background:var(--bg4); border-radius:12px; overflow:hidden; margin-bottom:20px; }
+  #timing-zone { position:absolute; left:35%; width:30%; height:100%; background:rgba(96,165,250,.3); border-radius:12px; }
+  #timing-ball { position:absolute; top:4px; width:16px; height:16px; border-radius:50%; background:#fff; transform:translateX(-50%); transition:background .2s; }
+
+  /* MISC */
+  .section-label { font-size:11px; letter-spacing:4px; color:var(--dim); margin-bottom:8px; }
+  .hint-box { background:#1a1500; border:1px solid rgba(251,191,36,.2); border-radius:10px; padding:14px 18px; color:var(--yellow); font-size:14px; line-height:1.7; }
+</style>
+</head>
+<body>
+<div id="bg-deco"></div>
+<div id="toast"></div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal-box" id="modal-inner"></div>
+</div>
+
+<div id="root">
+  <!-- HOME -->
+  <div id="page-home" class="page active">
+    <div style="text-align:center;margin-bottom:48px">
+      <div class="section-label">才 能 開 花 院</div>
+      <h1 class="serif" style="font-size:42px;font-weight:700;color:#fff;margin-bottom:16px;line-height:1.2">재능개화원</h1>
+      <p style="color:var(--muted);font-size:15px;line-height:1.8">꿈을 포기하셨나요?<br>재능이 없는 것이 아니라,<br>아직 피어나지 않았을 뿐입니다.</p>
+    </div>
+    <div class="home-card">
+      <div class="auth-switcher">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuth('login')">입장</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuth('register')">신규 등록</button>
+      </div>
+      <div id="field-nickname" class="field" style="display:none">
+        <label>닉네임</label>
+        <input id="inp-nickname" placeholder="표시될 이름" />
+      </div>
+      <div class="field">
+        <label>아이디</label>
+        <input id="inp-id" placeholder="아이디 입력" />
+      </div>
+      <div class="field" style="margin-bottom:20px">
+        <label>비밀번호</label>
+        <input id="inp-pw" type="password" placeholder="비밀번호 입력" onkeydown="if(event.key==='Enter')doAuth()" />
+      </div>
+      <p id="auth-error" style="color:var(--red);font-size:13px;margin-bottom:12px;display:none"></p>
+      <button class="btn btn-purple btn-full" onclick="doAuth()">입장하기</button>
+      <p style="color:var(--dim);font-size:12px;margin-top:16px;text-align:center">관리자: id <code style="color:var(--muted)">admin</code> / pw <code style="color:var(--muted)">admin</code>으로 처음 등록하세요</p>
+    </div>
+  </div>
+
+  <!-- MAIN (nav + pages) -->
+  <div id="main-area" style="display:none">
+    <nav>
+      <div class="nav-inner">
+        <button class="nav-brand" onclick="goPage('lobby')">재능개화원</button>
+        <button class="nav-btn active" id="nav-lobby" onclick="goPage('lobby')">강의실</button>
+        <button class="nav-btn" id="nav-mypage" onclick="goPage('mypage')">마이페이지</button>
+        <button class="nav-btn admin-btn" id="nav-admin" onclick="goPage('admin')" style="display:none">관리자</button>
+        <button class="nav-btn logout" onclick="doLogout()">퇴장</button>
+      </div>
+    </nav>
+
+    <!-- LOBBY -->
+    <div id="page-lobby" class="page" style="max-width:900px;margin:0 auto;padding:24px">
+      <div style="margin-bottom:32px">
+        <div class="section-label" id="lobby-date"></div>
+        <h2 class="serif" style="font-size:26px;color:#fff">개화원 강의실</h2>
+      </div>
+      <div id="lecture-grid" class="lecture-grid"></div>
+      <div id="reviews-section" style="margin-top:48px"></div>
+    </div>
+
+    <!-- MYPAGE -->
+    <div id="page-mypage" class="page" style="max-width:700px;margin:0 auto;padding:24px">
+      <div style="margin-bottom:32px">
+        <div class="section-label">MY PAGE</div>
+        <h2 class="serif" style="font-size:26px;color:#fff" id="my-nickname"></h2>
+        <p style="color:var(--muted);font-size:13px;margin-top:4px" id="my-stats"></p>
+      </div>
+      <div id="my-talents-box" class="card" style="margin-bottom:20px"></div>
+      <div id="my-hints-box" style="margin-bottom:20px"></div>
+      <div id="my-history-box" class="card"></div>
+    </div>
+
+    <!-- ADMIN -->
+    <div id="page-admin" class="page" style="max-width:900px;margin:0 auto;padding:24px">
+      <div style="margin-bottom:32px">
+        <div class="section-label">ADMIN CONSOLE</div>
+        <h2 class="serif" style="font-size:26px;color:#fff">관리자 패널</h2>
+      </div>
+      <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchAdminTab('lectures')">강의 관리</button>
+        <button class="tab-btn" onclick="switchAdminTab('users')">수강생 관리</button>
+        <button class="tab-btn" onclick="switchAdminTab('settings')">시스템 설정</button>
+      </div>
+      <div id="admin-tab-lectures">
+        <div class="card" style="margin-bottom:24px">
+          <h3 class="serif" style="color:var(--purple);margin-bottom:16px;font-size:16px">새 강의 등록</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div class="field"><label>강의명</label><input id="adm-title" placeholder="강의 제목" /></div>
+            <div class="field"><label>분야</label>
+              <select id="adm-cat">
+                <option>연기</option><option>음악</option><option>미술</option><option>스포츠</option>
+                <option>요리</option><option>경영</option><option>외국어</option><option>기술</option>
+              </select>
+            </div>
+          </div>
+          <div class="field"><label>강의 설명</label><textarea id="adm-desc" rows="2" placeholder="강의 설명"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+            <div class="field"><label>수강 후 발급 모드</label>
+              <select id="adm-mode" onchange="toggleHintField()">
+                <option value="talent">재능 발급</option>
+                <option value="hint">힌트 발급</option>
+              </select>
+            </div>
+            <div class="field" id="hint-field" style="display:none"><label>힌트 문구</label><input id="adm-hint" placeholder="수강 완료 시 표시될 힌트" /></div>
+          </div>
+          <button class="btn btn-purple btn-sm" onclick="addLecture()">강의 등록</button>
+        </div>
+        <div id="adm-lecture-list"></div>
+      </div>
+      <div id="admin-tab-users" style="display:none"><div id="adm-user-list"></div></div>
+      <div id="admin-tab-settings" style="display:none">
+        <div class="card" style="border-color:var(--border2)">
+          <h3 class="serif" style="color:var(--purple);margin-bottom:24px;font-size:16px">전체 모드 설정</h3>
+          <p style="color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.7">
+            강의별 모드가 지정되지 않은 경우 이 설정이 기본값으로 적용됩니다.<br>
+            현재 기본 모드: <span id="current-mode-label" style="font-weight:700;color:var(--purple)">재능 발급</span>
+          </p>
+          <div style="display:flex;gap:12px">
+            <button class="btn btn-purple" style="padding:12px 24px" onclick="changeGlobalMode('talent')">🌸 재능 발급 모드</button>
+            <button class="btn" style="padding:12px 24px;background:var(--border2)" id="btn-hint-mode" onclick="changeGlobalMode('hint')">💡 힌트 발급 모드</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DB ───────────────────────────────────────────────────────
+const SK = 'jaeneung_db';
+const TALENT_STAGES = ['씨앗','새싹','개화'];
+const TALENT_ICONS  = ['🌱','🌿','🌸'];
+const CAT_META = {
+  '연기':{icon:'🎭',color:'#c084fc'}, '음악':{icon:'🎵',color:'#f472b6'},
+  '미술':{icon:'🎨',color:'#fb923c'}, '스포츠':{icon:'⚡',color:'#4ade80'},
+  '요리':{icon:'🔥',color:'#fbbf24'}, '경영':{icon:'📊',color:'#60a5fa'},
+  '외국어':{icon:'🌐',color:'#34d399'}, '기술':{icon:'⚙️',color:'#94a3b8'},
+};
+
+function loadDB() {
+  try { const r = localStorage.getItem(SK); if (r) return JSON.parse(r); } catch{}
+  return { users:{}, lectures:[], reviews:{}, mode:'talent', session:null };
+}
+function saveDB() { try { localStorage.setItem(SK, JSON.stringify(DB)); } catch{} }
+
+let DB = loadDB();
+
+const me = () => DB.session ? DB.users[DB.session.uid] : null;
+const isAdmin = () => me()?.id === 'admin';
+const today = () => new Date().toLocaleDateString('ko-KR');
+
+// ─── TOAST ────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, ok=true) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = ok ? 'ok show' : 'err show';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────
+let authMode = 'login';
+function switchAuth(mode) {
+  authMode = mode;
+  document.getElementById('field-nickname').style.display = mode==='register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', mode==='login');
+  document.getElementById('tab-register').classList.toggle('active', mode==='register');
+  document.querySelector('.btn-full').textContent = mode==='login' ? '입장하기' : '등록 완료';
+  document.getElementById('auth-error').style.display='none';
+}
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg; el.style.display='block';
+}
+function doAuth() {
+  const id = document.getElementById('inp-id').value.trim();
+  const pw = document.getElementById('inp-pw').value.trim();
+  const nn = document.getElementById('inp-nickname').value.trim();
+  if (authMode === 'login') {
+    const user = Object.values(DB.users).find(u => u.id===id && u.pw===pw);
+    if (!user) { showAuthError('아이디 또는 비밀번호가 틀렸습니다.'); return; }
+    DB.session = { uid: user.uid }; saveDB();
+    initMain();
+  } else {
+    if (!id || !pw || !nn) { showAuthError('모든 항목을 입력하세요.'); return; }
+    if (Object.values(DB.users).find(u => u.id===id)) { showAuthError('이미 사용 중인 아이디입니다.'); return; }
+    const uid = Date.now().toString();
+    DB.users[uid] = { uid, id, pw, nickname:nn, talents:[], completedLectures:[] };
+    DB.session = { uid }; saveDB();
+    initMain();
+  }
+}
+function doLogout() { DB.session=null; saveDB(); location.reload(); }
+
+// ─── PAGE ROUTING ──────────────────────────────────────────────
+function initMain() {
+  document.getElementById('page-home').classList.remove('active');
+  document.getElementById('main-area').style.display='block';
+  if (isAdmin()) document.getElementById('nav-admin').style.display='';
+  goPage('lobby');
+}
+function goPage(p) {
+  ['lobby','mypage','admin'].forEach(n => {
+    document.getElementById('page-'+n).classList.toggle('active', n===p);
+    const nb = document.getElementById('nav-'+n);
+    if (nb) nb.classList.toggle('active', n===p);
+  });
+  if (p==='lobby')  renderLobby();
+  if (p==='mypage') renderMypage();
+  if (p==='admin')  renderAdmin();
+}
+
+// ─── LOBBY ─────────────────────────────────────────────────────
+function renderLobby() {
+  document.getElementById('lobby-date').textContent = today() + ' · 오늘의 강의';
+  const todayLecs = DB.lectures.filter(l => l.date===today());
+  const grid = document.getElementById('lecture-grid');
+  if (!todayLecs.length) {
+    grid.innerHTML = `<div style="text-align:center;padding:80px 0;color:var(--dim);grid-column:1/-1"><div style="font-size:40px;margin-bottom:16px">🌱</div><p>오늘은 등록된 강의가 없습니다.</p></div>`;
+  } else {
+    grid.innerHTML = todayLecs.map(lec => {
+      const meta = CAT_META[lec.category]||{icon:'✦',color:'#c084fc'};
+      const spots = lec.slots - lec.enrolled.length;
+      const done = me()?.completedLectures?.includes(lec.id);
+      const emode = lec.mode || DB.mode;
+      const reviews = DB.reviews[lec.id]||[];
+      const avg = reviews.length ? (reviews.reduce((a,b)=>a+b.star,0)/reviews.length).toFixed(1) : null;
+      return `<div class="card card-hover" style="opacity:${done?'0.6':'1'};cursor:${done||spots===0?'default':'pointer'}" onclick="startLecture('${lec.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <span style="font-size:28px">${meta.icon}</span>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            <span class="badge" style="color:${meta.color};background:${meta.color}22">${lec.category}</span>
+            <span class="badge" style="color:${emode==='hint'?'#fbbf24':'#c084fc'};background:${emode==='hint'?'#fbbf2422':'#c084fc22'}">${emode==='hint'?'💡 힌트':'🌸 재능'}</span>
+          </div>
+        </div>
+        <h3 class="serif" style="font-size:16px;color:#fff;margin-bottom:6px">${lec.title}</h3>
+        <p style="font-size:12px;color:#5a5a7a;margin-bottom:14px;line-height:1.6">${lec.desc||''}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;color:${spots===0?'var(--red)':'var(--green)'}">${spots===0?'마감':'잔여 '+spots+'석'}</span>
+          <span style="font-size:12px;color:#4040a0">${avg?'★ '+avg+' ('+reviews.length+')':''} ${done?'수강 완료':''}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Reviews
+  const rs = document.getElementById('reviews-section');
+  const allRevs = todayLecs.filter(l => (DB.reviews[l.id]||[]).length > 0);
+  if (!allRevs.length) { rs.innerHTML=''; return; }
+  rs.innerHTML = `<h3 class="serif" style="font-size:18px;color:#fff;margin-bottom:20px">수강 후기</h3>` +
+    allRevs.map(l => {
+      const revs = DB.reviews[l.id]||[];
+      return `<div style="margin-bottom:24px">
+        <div style="font-size:13px;color:var(--muted);margin-bottom:10px">「${l.title}」</div>
+        ${revs.map(r => `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+            <span style="font-size:13px;font-weight:600;color:var(--purple)">${r.nickname}</span>
+            <span style="color:var(--yellow);font-size:14px">${'★'.repeat(r.star)}${'☆'.repeat(5-r.star)}</span>
+          </div>
+          <p style="font-size:13px;color:#8080a0">${r.text||''}</p>
+        </div>`).join('')}
+      </div>`;
+    }).join('');
+}
+
+// ─── LECTURE FLOW ──────────────────────────────────────────────
+let activeLecture = null;
+
+function startLecture(id) {
+  const lec = DB.lectures.find(l => l.id===id);
+  if (!lec || !me()) return;
+  if (me().completedLectures.includes(id)) { toast('이미 수강 완료한 강의입니다.',false); return; }
+  if (lec.enrolled.includes(me().uid)) { toast('이미 수강한 강의입니다.',false); return; }
+  if (lec.enrolled.length >= lec.slots) { toast('수강 인원이 마감되었습니다.',false); return; }
+  activeLecture = lec;
+  openGameModal();
+}
+
+// ─── MINI GAMES ────────────────────────────────────────────────
+let gameRAF, gameState={};
+
+function openGameModal() {
+  const games = [showTimingGame, showTypingGame, showReactionGame];
+  const fn = games[Math.floor(Math.random()*games.length)];
+  openModal(`
+    <div style="font-size:11px;letter-spacing:3px;color:var(--dim);margin-bottom:8px">수련 과정</div>
+    <h3 class="serif" style="color:#fff;margin-bottom:4px">${activeLecture.title}</h3>
+    <p style="font-size:12px;color:var(--dim);margin-bottom:20px">미니게임을 클리어하면 수강이 완료됩니다.</p>
+    <div style="background:var(--bg);border:1px solid var(--border2);border-radius:16px;padding:24px" id="game-area"></div>
+  `, false);
+  fn();
+}
+
+function onGameComplete(success) {
+  cancelAnimationFrame(gameRAF);
+  if (!success) {
+    closeModal();
+    toast('수련에 실패했습니다. 다시 도전해 보세요.',false);
+    activeLecture=null; return;
+  }
+  // Grant reward
+  const lec = activeLecture;
+  const emode = lec.mode || DB.mode;
+  const user = DB.users[me().uid];
+  user.completedLectures = [...(user.completedLectures||[]), lec.id];
+  if (emode === 'talent') {
+    const ex = user.talents.find(t => t.category===lec.category);
+    if (ex) { ex.stage = Math.min(ex.stage+1, 2); }
+    else if (user.talents.length < 3) { user.talents.push({ category:lec.category, stage:0 }); }
+  }
+  lec.enrolled.push(me().uid);
+  saveDB();
+  openReviewModal(lec, emode);
+}
+
+// Timing game
+function showTimingGame() {
+  document.getElementById('game-area').innerHTML = `
+    <p style="color:#a0a0b0;margin-bottom:16px;font-size:13px;text-align:center">게이지가 <span style="color:var(--purple)">청색 구간</span> 안에 있을 때 클릭하세요</p>
+    <div id="timing-bar"><div id="timing-zone"></div><div id="timing-ball" style="left:0%"></div></div>
+    <div style="text-align:center"><button class="btn btn-purple" id="timing-btn" onclick="timingClick()">클릭!</button></div>
+    <p id="timing-result" style="text-align:center;font-size:18px;font-weight:700;display:none"></p>`;
+  let pos=0, dir=1, last=0;
+  gameState.timingPos = 0;
+  function tick(ts) {
+    if (ts-last > 16) { pos += dir*2; if(pos>=100||pos<=0) dir*=-1; gameState.timingPos=pos;
+      document.getElementById('timing-ball').style.left = pos+'%'; last=ts; }
+    gameRAF = requestAnimationFrame(tick);
+  }
+  gameRAF = requestAnimationFrame(tick);
+}
+function timingClick() {
+  cancelAnimationFrame(gameRAF);
+  const pos = gameState.timingPos;
+  const ok = pos>=35 && pos<=65;
+  const btn = document.getElementById('timing-btn'); btn.style.display='none';
+  const ball = document.getElementById('timing-ball'); ball.style.background = ok?'#4ade80':'#f87171';
+  const res = document.getElementById('timing-result');
+  res.style.display='block'; res.style.color=ok?'#4ade80':'#f87171'; res.textContent=ok?'성공!':'실패...';
+  setTimeout(()=>onGameComplete(ok), 1000);
+}
+
+// Typing game
+function showTypingGame() {
+  const CODES=['BLOOM','TALENT','GAEHWA','FLOWER','AWAKEN'];
+  const code = CODES[Math.floor(Math.random()*CODES.length)];
+  let timeLeft=10, done=false;
+  document.getElementById('game-area').innerHTML=`
+    <p style="color:#a0a0b0;font-size:13px;margin-bottom:12px;text-align:center">제한 시간 내에 정확히 입력하세요</p>
+    <div style="font-size:32px;letter-spacing:8px;color:var(--purple);font-family:monospace;margin-bottom:16px;font-weight:700;text-align:center">${code}</div>
+    <div id="type-timer" style="text-align:center;margin-bottom:12px;font-size:13px;color:#a0a0b0">⏱ ${timeLeft}초</div>
+    <input id="type-inp" oninput="typeCheck('${code}')" style="background:var(--bg4);border:1px solid #333;color:#fff;padding:8px 16px;border-radius:8px;font-size:18px;text-align:center;letter-spacing:4px;width:100%;font-family:monospace" autofocus />`;
+  const iv = setInterval(()=>{
+    if(done){clearInterval(iv);return;}
+    timeLeft--;
+    const el=document.getElementById('type-timer');
+    if(el){el.textContent='⏱ '+timeLeft+'초'; el.style.color=timeLeft<=3?'#f87171':'#a0a0b0';}
+    if(timeLeft<=0){done=true;clearInterval(iv);setTimeout(()=>onGameComplete(false),800);}
+  },1000);
+  gameState.typeDone=()=>{done=true;clearInterval(iv);};
+  gameState.typeCode=code;
+}
+function typeCheck(code) {
+  const v=document.getElementById('type-inp').value.toUpperCase();
+  document.getElementById('type-inp').value=v;
+  if(v===code&&gameState.typeCode===code){gameState.typeDone();setTimeout(()=>onGameComplete(true),600);}
+}
+
+// Reaction game
+function showReactionGame() {
+  let state='wait';
+  document.getElementById('game-area').innerHTML=`
+    <p style="color:#a0a0b0;font-size:13px;margin-bottom:20px;text-align:center">신호가 켜지면 즉시 클릭하세요!</p>
+    <div id="react-circle" onclick="reactClick()" style="width:120px;height:120px;border-radius:50%;margin:0 auto 20px;background:#333;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;transition:background .15s">대기 중...</div>`;
+  const delay = 1500+Math.random()*2000;
+  gameState.reactState=state;
+  const t=setTimeout(()=>{
+    gameState.reactState='ready';
+    const c=document.getElementById('react-circle');
+    if(c){c.style.background='#4ade80';c.style.boxShadow='0 0 40px #4ade8088';c.textContent='지금!';}
+  },delay);
+  gameState.reactTimer=t;
+}
+function reactClick() {
+  const s=gameState.reactState;
+  clearTimeout(gameState.reactTimer);
+  const c=document.getElementById('react-circle');
+  if(s==='wait'){if(c){c.style.background='#f87171';c.textContent='실패!';}setTimeout(()=>onGameComplete(false),800);}
+  else if(s==='ready'){if(c){c.style.background='#4ade80';c.textContent='성공!';}setTimeout(()=>onGameComplete(true),800);}
+  gameState.reactState='done';
+}
+
+// ─── REVIEW MODAL ──────────────────────────────────────────────
+let reviewStar=5;
+function openReviewModal(lec, emode) {
+  reviewStar=5;
+  openModal(`
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:40px;margin-bottom:8px">${emode==='hint'?'💡':'🌸'}</div>
+      <h3 class="serif" style="color:${emode==='hint'?'var(--yellow)':'var(--purple)'};margin-bottom:8px">
+        ${emode==='hint'?'힌트를 수신했습니다':'재능이 개화했습니다'}</h3>
+      ${emode==='hint'&&lec.hint
+        ? `<div class="hint-box">${lec.hint}</div>`
+        : `<p style="color:var(--muted);font-size:13px">${lec.category} 재능이 성장했습니다. 마이페이지에서 확인해 보세요.</p>`}
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:20px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">강의 후기를 남겨 주세요</div>
+      <div class="stars" id="review-stars" style="margin-bottom:12px">${[1,2,3,4,5].map(s=>`<span data-s="${s}" onclick="setStar(${s})" class="${s<=5?'lit':''}"  >★</span>`).join('')}</div>
+      <textarea id="review-text" rows="3" placeholder="한 줄 후기를 입력해 주세요..." style="width:100%;background:var(--bg4);border:1px solid #2a2a4e;color:#fff;border-radius:8px;padding:10px 14px;font-size:14px;resize:none;font-family:var(--sans);margin-bottom:14px"></textarea>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-purple" style="flex:1" onclick="submitReview('${lec.id}')">후기 제출 및 완료</button>
+        <button class="btn btn-dark" onclick="skipReview()">건너뛰기</button>
+      </div>
+    </div>`, false);
+}
+function setStar(s) {
+  reviewStar=s;
+  document.querySelectorAll('#review-stars span').forEach(el=>{
+    el.classList.toggle('lit', parseInt(el.dataset.s)<=s);
+  });
+}
+function submitReview(lid) {
+  const text = document.getElementById('review-text').value.trim();
+  const user = me();
+  DB.reviews[lid] = DB.reviews[lid]||[];
+  DB.reviews[lid].push({ uid:user.uid, nickname:user.nickname, star:reviewStar, text, ts:Date.now() });
+  saveDB(); closeModal(); activeLecture=null;
+  toast('수강을 완료했습니다!');
+  renderLobby();
+}
+function skipReview() { closeModal(); activeLecture=null; toast('수강 완료!'); renderLobby(); }
+
+// ─── MYPAGE ────────────────────────────────────────────────────
+function renderMypage() {
+  const user = me(); if(!user) return;
+  document.getElementById('my-nickname').textContent = user.nickname;
+  document.getElementById('my-stats').textContent = '수강 완료 강의 ' + (user.completedLectures?.length||0) + '개';
+
+  // Talents
+  const tb = document.getElementById('my-talents-box');
+  tb.innerHTML = `<h3 class="serif" style="color:var(--purple);margin-bottom:20px;font-size:16px">보유 재능 (${user.talents.length}/3)</h3>`;
+  if (!user.talents.length) {
+    tb.innerHTML += `<p style="color:var(--dim);font-size:14px">아직 개화된 재능이 없습니다. 강의를 수강해 보세요.</p>`;
+  } else {
+    tb.innerHTML += `<div style="display:flex;gap:16px;flex-wrap:wrap">${user.talents.map(t=>{
+      const meta=CAT_META[t.category]||{icon:'✦',color:'#c084fc'};
+      return `<div class="talent-card" style="border:1px solid ${meta.color}44">
+        <div style="font-size:28px;margin-bottom:6px">${meta.icon}</div>
+        <div style="font-size:13px;color:${meta.color};font-weight:600">${t.category}</div>
+        <div style="font-size:20px;margin:6px 0">${TALENT_ICONS[t.stage]}</div>
+        <div style="font-size:12px;color:var(--muted)">${TALENT_STAGES[t.stage]}</div>
+        <div class="talent-dots">${[0,1,2].map(s=>`<div class="talent-dot" style="${s<=t.stage?'background:'+meta.color:''}"></div>`).join('')}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  // Hints
+  const hintLecs = (user.completedLectures||[]).map(id=>DB.lectures.find(l=>l.id===id)).filter(l=>l&&(l.mode||DB.mode)==='hint'&&l.hint);
+  const hb = document.getElementById('my-hints-box');
+  if (!hintLecs.length) { hb.innerHTML=''; } else {
+    hb.innerHTML = `<div class="card" style="border-color:rgba(251,191,36,.2)"><h3 class="serif" style="color:var(--yellow);margin-bottom:20px;font-size:16px">수신한 힌트</h3>${
+      hintLecs.map(l=>`<div class="hint-box" style="margin-bottom:12px"><div style="font-size:11px;color:rgba(251,191,36,.4);margin-bottom:4px">「${l.title}」에서 수신</div>${l.hint}</div>`).join('')
+    }</div>`;
+  }
+
+  // History
+  const hy = document.getElementById('my-history-box');
+  hy.innerHTML = `<h3 class="serif" style="color:#fff;margin-bottom:16px;font-size:16px">수강 이력</h3>`;
+  const completed = (user.completedLectures||[]).map(id=>DB.lectures.find(l=>l.id===id)).filter(Boolean);
+  if (!completed.length) {
+    hy.innerHTML += `<p style="color:var(--dim);font-size:14px">수강한 강의가 없습니다.</p>`;
+  } else {
+    hy.innerHTML += completed.map(lec=>{
+      const meta=CAT_META[lec.category]||{icon:'✦',color:'#c084fc'};
+      return `<div style="display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--bg);border-radius:10px;margin-bottom:6px">
+        <span style="font-size:18px">${meta.icon}</span>
+        <div><div style="font-size:13px;color:#c0c0e0">${lec.title}</div><div style="font-size:11px;color:var(--dim)">${lec.category} · ${lec.date}</div></div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ─── ADMIN ─────────────────────────────────────────────────────
+let adminTab='lectures';
+function switchAdminTab(tab) {
+  adminTab=tab;
+  ['lectures','users','settings'].forEach(t=>{
+    document.getElementById('admin-tab-'+t).style.display=t===tab?'':'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn,i)=>{
+    btn.classList.toggle('active', ['lectures','users','settings'][i]===tab);
+  });
+  renderAdmin();
+}
+function renderAdmin() {
+  if (adminTab==='lectures') renderAdmLectures();
+  if (adminTab==='users') renderAdmUsers();
+  if (adminTab==='settings') renderAdmSettings();
+}
+function toggleHintField() {
+  document.getElementById('hint-field').style.display = document.getElementById('adm-mode').value==='hint'?'':'none';
+}
+function addLecture() {
+  const title = document.getElementById('adm-title').value.trim();
+  const cat   = document.getElementById('adm-cat').value;
+  const desc  = document.getElementById('adm-desc').value.trim();
+  const mode  = document.getElementById('adm-mode').value;
+  const hint  = document.getElementById('adm-hint')?.value.trim()||'';
+  if (!title) return;
+  DB.lectures.unshift({ id:Date.now().toString(), title, category:cat, desc, mode, hint, slots:3, enrolled:[], date:today() });
+  saveDB(); toast('강의가 등록되었습니다!');
+  document.getElementById('adm-title').value='';
+  document.getElementById('adm-desc').value='';
+  document.getElementById('adm-hint').value='';
+  renderAdmLectures();
+}
+function deleteLecture(id) {
+  DB.lectures=DB.lectures.filter(l=>l.id!==id); saveDB();
+  toast('강의가 삭제되었습니다.'); renderAdmLectures();
+}
+function renderAdmLectures() {
+  const el=document.getElementById('adm-lecture-list');
+  if (!DB.lectures.length) { el.innerHTML=`<p style="color:var(--dim);font-size:14px">등록된 강의가 없습니다.</p>`; return; }
+  el.innerHTML = DB.lectures.map(lec=>{
+    const meta=CAT_META[lec.category]||{icon:'✦',color:'#c084fc'};
+    const emode=lec.mode||DB.mode;
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <span style="font-size:20px">${meta.icon}</span>
+      <div style="flex:1">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+          <span style="font-size:14px;color:#c0c0e0;font-weight:600">${lec.title}</span>
+          <span class="badge" style="color:${meta.color};background:${meta.color}22">${lec.category}</span>
+          <span class="badge" style="color:${emode==='hint'?'var(--yellow)':'var(--purple)'};background:${emode==='hint'?'#fbbf2422':'#c084fc22'}">${emode==='hint'?'힌트':'재능'}</span>
+        </div>
+        <div style="font-size:12px;color:var(--dim)">${lec.date} · 수강 ${lec.enrolled.length}/${lec.slots} · 후기 ${(DB.reviews[lec.id]||[]).length}개</div>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="deleteLecture('${lec.id}')">삭제</button>
+    </div>`;
+  }).join('');
+}
+function renderAdmUsers() {
+  const users=Object.values(DB.users).filter(u=>u.id!=='admin');
+  const el=document.getElementById('adm-user-list');
+  if (!users.length) { el.innerHTML=`<p style="color:var(--dim);font-size:14px">등록된 수강생이 없습니다.</p>`; return; }
+  el.innerHTML=users.map(u=>`
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-size:14px;color:#c0c0e0;font-weight:600">${u.nickname} <span style="color:var(--dim);font-weight:400">@${u.id}</span></div>
+          <div style="font-size:12px;color:var(--dim);margin-top:4px">수강 완료 ${u.completedLectures?.length||0}개 · 재능 ${u.talents?.length||0}/3</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${(u.talents||[]).map(t=>{const m=CAT_META[t.category]||{icon:'✦',color:'#c084fc'};return`<span style="font-size:12px;color:${m.color}">${m.icon} ${t.category}(${TALENT_STAGES[t.stage]})</span>`;}).join('')}</div>
+      </div>
+    </div>`).join('');
+}
+function renderAdmSettings() {
+  const mode=DB.mode;
+  document.getElementById('current-mode-label').textContent=mode==='hint'?'힌트 발급':'재능 발급';
+  document.getElementById('current-mode-label').style.color=mode==='hint'?'var(--yellow)':'var(--purple)';
+}
+function changeGlobalMode(mode) {
+  DB.mode=mode; saveDB(); renderAdmSettings();
+  toast(`전체 모드가 '${mode==='hint'?'힌트 발급':'재능 발급'}'으로 변경되었습니다!`);
+}
+
+// ─── MODAL ─────────────────────────────────────────────────────
+function openModal(html, closeable=true) {
+  document.getElementById('modal-box').innerHTML = html;
+  const ov=document.getElementById('modal-overlay');
+  ov.classList.add('open');
+  if (closeable) ov.onclick=e=>{if(e.target===ov)closeModal();};
+  else ov.onclick=null;
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  cancelAnimationFrame(gameRAF);
+}
+
+// ─── INIT ──────────────────────────────────────────────────────
+if (DB.session && DB.users[DB.session.uid]) {
+  document.getElementById('page-home').classList.remove('active');
+  document.getElementById('main-area').style.display='block';
+  if (isAdmin()) document.getElementById('nav-admin').style.display='';
+  goPage('lobby');
+}
+</script>
+</body>
+</html>
